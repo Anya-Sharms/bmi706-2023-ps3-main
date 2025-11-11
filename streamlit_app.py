@@ -72,14 +72,25 @@ st.write("## Age-specific cancer mortality rates")
 
 ### P2.1 ###
 # replace with st.slider
-year = 2012
+year = st.slider(
+    "Select Year",
+    min_value=int(df["Year"].min()),
+    max_value=int(df["Year"].max()),
+    value=int(df["Year"].min()) 
+)
 subset = df[df["Year"] == year]
+
 ### P2.1 ###
+# Create a slider for year selection
 
 
 ### P2.2 ###
 # replace with st.radio
-sex = "M"
+sex = st.radio(
+    "Select Sex",
+    options=["M", "F"],  
+    index=0 
+)
 subset = subset[subset["Sex"] == sex]
 ### P2.2 ###
 
@@ -87,22 +98,30 @@ subset = subset[subset["Sex"] == sex]
 ### P2.3 ###
 # replace with st.multiselect
 # (hint: can use current hard-coded values below as as `default` for selector)
-countries = [
-    "Austria",
-    "Germany",
-    "Iceland",
-    "Spain",
-    "Sweden",
-    "Thailand",
-    "Turkey",
-]
+countries = st.multiselect(
+    "Select Countries to Compare",
+    options=sorted(df["Country"].unique()),  # all countries in the dataset
+    default=[
+        "Austria",
+        "Germany",
+        "Iceland",
+        "Spain",
+        "Sweden",
+        "Thailand",
+        "Turkey",
+    ]  # default selection
+)
 subset = subset[subset["Country"].isin(countries)]
 ### P2.3 ###
 
 
 ### P2.4 ###
 # replace with st.selectbox
-cancer = "Malignant neoplasm of stomach"
+cancer = st.selectbox(
+    "Select Cancer Type",
+    options=sorted(df["Cancer"].unique()),  # all cancer types in the dataset
+    index=sorted(df["Cancer"].unique()).index("Malignant neoplasm of stomach")  # default selection
+)
 subset = subset[subset["Cancer"] == cancer]
 ### P2.4 ###
 
@@ -119,14 +138,21 @@ ages = [
     "Age >64",
 ]
 
-chart = alt.Chart(subset).mark_bar().encode(
-    x=alt.X("Age", sort=ages),
-    y=alt.Y("Rate", title="Mortality rate per 100k"),
-    color="Country",
-    tooltip=["Rate"],
+chart = alt.Chart(subset).mark_rect().encode(
+    x=alt.X("Age", sort=ages, title="Age group"),
+    y=alt.Y("Country", title="Country"),
+    color=alt.Color(
+        "Rate",
+        scale=alt.Scale(type="log", domain=[0.01, 1000], clamp=True),
+        title="Mortality rate per 100k"
+    ),
+    tooltip=["Country", "Age", "Rate"]
 ).properties(
     title=f"{cancer} mortality rates for {'males' if sex == 'M' else 'females'} in {year}",
+    width=600,
+    height=400
 )
+
 ### P2.5 ###
 
 st.altair_chart(chart, use_container_width=True)
